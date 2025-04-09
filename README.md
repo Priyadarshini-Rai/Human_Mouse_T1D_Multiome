@@ -3,6 +3,7 @@ __Maryam Abedi*__, __Priyadarshini Rai*__, __Yeqiao Zhou*__, Chengyang Liu, Isab
 <br>
 \* Equal contributions<br>
 \# co-corresponding authors<br>
+![Data Overview](Figures/Data_Overview.png)
 ## Overview
 This repository contains the scripts used for data analysis and figure generation in the manuscript titled "*Joint Profiling of Gene Expression and Chromatin Accessibility in Pancreatic Lymph Nodes and Spleens of Human Type 1 Diabetes*".<br>
 <br>
