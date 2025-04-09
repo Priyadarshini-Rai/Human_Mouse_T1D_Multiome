@@ -1,0 +1,199 @@
+---
+title: "20250409_MA_IF_filtered_cells_QN_norm_adjustedThresholds_10cellAvg"
+author: "Atishay_Jay"
+date: "2025-04-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Opening intensity CSV from Project001_HPAP107_LN_tail
+
+```{r cars}
+##### Reset global env and variables #####
+rm(list = ls())
+
+# Load necessary libraries
+library(data.table)
+library(tidyverse)
+library(pheatmap)
+library(ggsignif)
+
+# Read in the datasets
+CD4_HPAP107_LN_tail_path <- '/mnt/alvand/atishay/20241223_MA_NFkB_IF_data/QN_raw_images/Project001_HPAP107_LN_tail/analysis_files/Project001_HPAP107_LN_tail_CD4red_intensity_results_normalized.csv'
+CD4_HPAP107_LN_tail_data <- fread(CD4_HPAP107_LN_tail_path, header = TRUE, stringsAsFactors = FALSE)
+CD4_HPAP107_LN_tail_data_tibble <- as_tibble(CD4_HPAP107_LN_tail_data)
+
+CD45RO_HPAP107_LN_tail_path <- '/mnt/alvand/atishay/20241223_MA_NFkB_IF_data/QN_raw_images/Project001_HPAP107_LN_tail/analysis_files/Project001_HPAP107_LN_tail_CD45ROgreen_intensity_results_normalized.csv'
+CD45RO_HPAP107_LN_tail_data <- fread(CD45RO_HPAP107_LN_tail_path, header = TRUE, stringsAsFactors = FALSE)
+CD45RO_HPAP107_LN_tail_data_tibble <- as_tibble(CD45RO_HPAP107_LN_tail_data)
+
+NFkB_HPAP107_LN_tail_path <- '/mnt/alvand/atishay/20241223_MA_NFkB_IF_data/QN_raw_images/Project001_HPAP107_LN_tail/analysis_files/Project001_HPAP107_LN_tail_NXKblue_intensity_results_normalized.csv'
+NFkB_HPAP107_LN_tail_data <- fread(NFkB_HPAP107_LN_tail_path, header = TRUE, stringsAsFactors = FALSE)
+NFkB_HPAP107_LN_tail_data_tibble <- as_tibble(NFkB_HPAP107_LN_tail_data)
+
+# Join the WT datasets and plot Ets1 and Gapdh distributions
+# Combine the datasets
+CD4_HPAP107_LN_tail_data_tibble <- CD4_HPAP107_LN_tail_data_tibble %>% rename_with(~ paste0("CD4_", .x), -1)
+CD45RO_HPAP107_LN_tail_data_tibble <- CD45RO_HPAP107_LN_tail_data_tibble %>% rename_with(~ paste0("CD45RO_", .x), -1)
+NFkB_HPAP107_LN_tail_data_tibble <- NFkB_HPAP107_LN_tail_data_tibble %>% rename_with(~ paste0("NFkB_", .x), -1)
+
+# Merge the tibbles based on the first column
+HPAP107_LN_tail_merged_tibble <- CD4_HPAP107_LN_tail_data_tibble %>%
+  full_join(CD45RO_HPAP107_LN_tail_data_tibble, by = colnames(CD4_HPAP107_LN_tail_data_tibble)[1]) %>% # Use the first column name for joining
+  full_join(NFkB_HPAP107_LN_tail_data_tibble, by = colnames(CD4_HPAP107_LN_tail_data_tibble)[1])
+
+# Define positive threshold from images
+HPAP107_LN_tail_threshold_CD4 <- 59.587
+HPAP107_LN_tail_threshold_CD45RO <- 74.119
+
+# Filter out CD4+ CD45RO+ NFkB+ cells
+HPAP107_LN_tail_merged_tibble_filtered <- HPAP107_LN_tail_merged_tibble %>%
+  filter(
+    CD4_Mean > HPAP107_LN_tail_threshold_CD4 &
+    CD45RO_Mean > HPAP107_LN_tail_threshold_CD45RO  
+  )
+
+# 01/08/24 - Filter tibble for CD4+ CD45RO- cells
+HPAP107_LN_tail_CD45RO_neg_tibble_filtered <- HPAP107_LN_tail_merged_tibble %>%
+  filter(
+    CD4_Mean > HPAP107_LN_tail_threshold_CD4 &
+    CD45RO_Mean < HPAP107_LN_tail_threshold_CD45RO  
+  )
+
+# Select mean values for all 3 channels from filtered data
+HPAP107_LN_tail_merged_tibble_sorted <- HPAP107_LN_tail_merged_tibble_filtered %>% select(V1, CD4_Mean, CD45RO_Mean, NFkB_Mean)
+
+
+HPAP107_LN_tail_CD45RO_neg_tibble_sorted <- HPAP107_LN_tail_CD45RO_neg_tibble_filtered %>% select(V1, CD4_Mean, CD45RO_Mean, NFkB_Mean)
+```
+
+## Opening intensity CSV from Project001_ICRH157_SMA
+
+```{r cars}
+# Load necessary libraries
+library(data.table)
+library(tidyverse)
+library(pheatmap)
+library(ggsignif)
+
+# Read in the datasets
+CD4_ICRH157_SMA_path <- '/mnt/alvand/atishay/20241223_MA_NFkB_IF_data/QN_raw_images/Project001_ICRH157_SMA/analysis_files/Project001_ICRH157_SMA_CD4red_intensity_results_normalized.csv'
+CD4_ICRH157_SMA_data <- fread(CD4_ICRH157_SMA_path, header = TRUE, stringsAsFactors = FALSE)
+CD4_ICRH157_SMA_data_tibble <- as_tibble(CD4_ICRH157_SMA_data)
+
+CD45RO_ICRH157_SMA_path <- '/mnt/alvand/atishay/20241223_MA_NFkB_IF_data/QN_raw_images/Project001_ICRH157_SMA/analysis_files/Project001_ICRH157_SMA_CD45green_intensity_results_normalized.csv'
+CD45RO_ICRH157_SMA_data <- fread(CD45RO_ICRH157_SMA_path, header = TRUE, stringsAsFactors = FALSE)
+CD45RO_ICRH157_SMA_data_tibble <- as_tibble(CD45RO_ICRH157_SMA_data)
+
+NFkB_ICRH157_SMA_path <- '/mnt/alvand/atishay/20241223_MA_NFkB_IF_data/QN_raw_images/Project001_ICRH157_SMA/analysis_files/Project001_ICRH157_SMA_NXKblue_intensity_results_normalized.csv'
+NFkB_ICRH157_SMA_data <- fread(NFkB_ICRH157_SMA_path, header = TRUE, stringsAsFactors = FALSE)
+NFkB_ICRH157_SMA_data_tibble <- as_tibble(NFkB_ICRH157_SMA_data)
+
+# Join the WT datasets and plot Ets1 and Gapdh distributions
+# Combine the datasets
+CD4_ICRH157_SMA_data_tibble <- CD4_ICRH157_SMA_data_tibble %>% rename_with(~ paste0("CD4_", .x), -1)
+CD45RO_ICRH157_SMA_data_tibble <- CD45RO_ICRH157_SMA_data_tibble %>% rename_with(~ paste0("CD45RO_", .x), -1)
+NFkB_ICRH157_SMA_data_tibble <- NFkB_ICRH157_SMA_data_tibble %>% rename_with(~ paste0("NFkB_", .x), -1)
+
+# Merge the tibbles based on the first column
+ICRH157_SMA_merged_tibble <- CD4_ICRH157_SMA_data_tibble %>%
+  full_join(CD45RO_ICRH157_SMA_data_tibble, by = colnames(CD4_ICRH157_SMA_data_tibble)[1]) %>% # Use the first column name for joining
+  full_join(NFkB_ICRH157_SMA_data_tibble, by = colnames(CD4_ICRH157_SMA_data_tibble)[1])
+
+# Define positive threshold from images
+ICRH157_SMA_threshold_CD4 <- 53.06 
+ICRH157_SMA_threshold_CD45RO <- 75.746 
+
+# Filter out CD4+ CD45RO+ NFkB+ cells
+ICRH157_SMA_merged_tibble_filtered <- ICRH157_SMA_merged_tibble %>%
+  filter(
+    CD4_Mean > ICRH157_SMA_threshold_CD4 &
+      CD45RO_Mean > ICRH157_SMA_threshold_CD45RO  
+  )
+
+# 01/08/24 - Filter tibble for CD4+ CD45RO- cells
+ICRH157_SMA_CD45RO_neg_tibble_filtered <- ICRH157_SMA_merged_tibble %>%
+  filter(
+    CD4_Mean > ICRH157_SMA_threshold_CD4 &
+    CD45RO_Mean < ICRH157_SMA_threshold_CD45RO  
+  )
+
+# Select mean values for all 3 channels from filtered data
+ICRH157_SMA_merged_tibble_sorted <- ICRH157_SMA_merged_tibble_filtered %>% select(V1, CD4_Mean, CD45RO_Mean, NFkB_Mean)
+
+ICRH157_SMA_CD45RO_neg_tibble_sorted <- ICRH157_SMA_CD45RO_neg_tibble_filtered %>% select(V1, CD4_Mean, CD45RO_Mean, NFkB_Mean)
+```
+
+## Plotting the Nfkb levels in CD45RO+/CD45RO- CD4 cells in ICRH157_SMA and HPAP107_LN_tail
+
+```{r cars}
+merged_tissue_data <- bind_rows(
+  mutate(HPAP107_LN_tail_merged_tibble_sorted, tissue = 'HPAP107_LN_tail'),
+  mutate(ICRH157_SMA_merged_tibble_sorted, tissue = 'ICRH157_SMA'),
+)
+
+merged_CD45_neg_data <- bind_rows(
+  mutate(HPAP107_LN_tail_CD45RO_neg_tibble_sorted, tissue = 'HPAP107_LN_tail'),
+  mutate(ICRH157_SMA_CD45RO_neg_tibble_sorted, tissue = 'ICRH157_SMA'),
+)
+
+################################################################################
+# Plotting NFkB intensities for CD4+ CD45RO- / CD4+ CD45RO+ cells side by side #
+################################################################################
+merged_tissue_data <- merged_tissue_data %>% mutate(data_type = 'CD45RO_positive')
+merged_CD45_neg_data <- merged_CD45_neg_data %>% mutate(data_type = 'CD45RO_negative')
+
+# Combine the two datasets
+combined_data <- bind_rows(merged_tissue_data, merged_CD45_neg_data)
+
+
+# Add a new variable that combines tissue and data_type
+combined_data <- combined_data %>%
+  mutate(tissue_data_type = paste(tissue, data_type, sep = "."))
+
+
+combined_data$tissue_data_type <- factor(combined_data$tissue_data_type, 
+                                         levels = c('ICRH157_SMA.CD45RO_negative', 'ICRH157_SMA.CD45RO_positive',
+                                                    'HPAP107_LN_tail.CD45RO_negative', 'HPAP107_LN_tail.CD45RO_positive'))
+
+# Plot the combined data with the new labeling
+p <- ggplot(combined_data, aes(x = tissue_data_type, y = NFkB_Mean, fill = data_type)) +
+  geom_violin(trim = FALSE) +  
+  geom_boxplot(width = 0.1, fill = "white", alpha = 0.5) +  
+  labs(title = "Violin Plot of NFkB Mean Intensity for CD45RO Positive and Negative Cells Across Tissues",
+       x = "Tissue and Data Type",
+       y = "NFkB Mean Intensity") +
+  theme_minimal() +
+  theme(legend.title = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())
+
+print(p)
+
+s <- p + 
+  geom_signif(
+    comparisons = list(
+      c("ICRH157_SMA.CD45RO_negative", "ICRH157_SMA.CD45RO_positive"),
+      c("HPAP107_LN_tail.CD45RO_negative", "HPAP107_LN_tail.CD45RO_positive"),
+      c("ICRH157_SMA.CD45RO_negative", "HPAP107_LN_tail.CD45RO_negative"),
+      c("ICRH157_SMA.CD45RO_positive", "HPAP107_LN_tail.CD45RO_positive")
+      ),
+    test="wilcox.test", 
+    test.args=list(alternative = "two.sided", var.equal = FALSE, paired=FALSE),
+    map_signif_level = FALSE,  
+    format.p = TRUE,           
+    textsize = 3,
+    y_position = c(300, 300, 340, 380)        
+  )
+
+print(s)
+
+ggsave("/mnt/alvand/atishay/20241223_MA_NFkB_IF_data/QN_raw_images/combined_tissue_analysis/double_positive_filtering/lowest_intensity_threshold_10cellAvg/20250316_allTissue_combined_NFkB_expression_Mann_Whitney_signif.pdf", width = 10, height = 6)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
